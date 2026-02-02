@@ -243,11 +243,20 @@ def generate_qr_code(qr, qr_image_parts, drawer_instance):
 
 # Save the image to a file
 def save_image(final_image, output_dir):
-    output_dir = os.path.expanduser(output_dir)  # Expand tilde
-    if not os.path.exists(output_dir):
-        print(f"Output directory '{output_dir}' does not exist. Creating it.")
-        os.makedirs(output_dir)
-    result_path = os.path.join(output_dir, "qrcode.png")
+    output_dir = os.path.expanduser(output_dir) 
+    
+    if os.path.isdir(output_dir) or not os.path.splitext(output_dir)[1]:
+        if not os.path.exists(output_dir):
+            print(f"Output directory '{output_dir}' does not exist. Creating it.")
+            os.makedirs(output_dir)
+        result_path = os.path.join(output_dir, "qrcode.png")
+    else:
+        output_parent_dir = os.path.dirname(output_dir)
+        if output_parent_dir and not os.path.exists(output_parent_dir):
+            print(f"Output directory '{output_parent_dir}' does not exist. Creating it.")
+            os.makedirs(output_parent_dir)
+        result_path = output_dir
+    
     print("Saving qr-code (png) to: ", result_path)
     final_image.save(result_path)
 
