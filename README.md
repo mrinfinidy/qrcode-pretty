@@ -251,11 +251,11 @@ Available styles: square, gapped-square, circle, round, vertical-bars, horizonta
 
 ![qrcode github cat](./samples/qrcode-cat.png)
 
-`qrcode-pretty --data "https://github.com/mrinfinidy/qrcode-pretty" --image default --style round --style-inner round --style-outer round --base "#000000" --color-inner "#ff7373" --color-outer "#508A8C" --output "~/Pictures/"`
+`qrcode-pretty --data "https://github.com/mrinfinidy/qrcode-pretty" --image default --style round --style-inner round --style-outer round --base "#000000" --color-inner "#d3869b" --color-outer "#458588" --output "~/Pictures/"`
 
 ![qrcode github cat 2](./samples/qrcode-cat-2.png)
 
-`qrcode-pretty --data "https://github.com/mrinfinidy/qrcode-pretty" --image default --style round --style-inner round --style-outer round --base "#1d2021" --color-inner "#d3869b" --color-outer "#458588" --output "~/Pictures/"`
+`qrcode-pretty --data "https://github.com/mrinfinidy/qrcode-pretty" --image default --style circle --style-inner round --style-outer round --base "#1d2021" --color-inner "#666341" --color-outer "#1d2021" --output "~/Pictures/"`
 
 ![qrcode github](./samples/qrcode-purple.png)
 
