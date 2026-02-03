@@ -220,15 +220,15 @@ Use `qrcode-pretty -h` to print all available options:
 Options:
   -h, --help                              Show this help message and exit
   -d, --data <data>                       Data to encode in QR code (required)
-  -i, --image <image>                     Input image file name (optional)
-  -s, --style <style>                     Style for the QR code modules (optional)
-      --style-inner <style>               Style for the inner eyes (optional)
-      --style-outer <style>               Style for the outer eyes (optional)
+  -i, --image <image>                     Input image file name
+  -s, --style <style>                     Style for the QR code modules
+      --style-inner <style>               Style for the inner eyes
+      --style-outer <style>               Style for the outer eyes
   -b, --base <hex>                        Base color hex code (e.g. #000000)
   -n, --color-inner <hex>                 Inner eye color hex code
   -r, --color-outer <hex>                 Outer eye color hex code
   -o, --output <directory or filename>    Output directory path or filename (default: ~/Pictures/qrcode-pretty/qrcode.png)
-      --svg                               Also generate SVG output (optional flag)
+      --svg                               Also generate SVG output
       --version <int>                     QR version (default: 5)
       --box-size <int>                    Box size in pixels (default: 10)
       --border <int>                      Border size in boxes (default: 4)
