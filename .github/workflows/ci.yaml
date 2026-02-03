@@ -24,6 +24,8 @@ jobs:
         uv --version
     - name: Install dependencies
       run: |
+        uv venv 
+        source .venv/bin/activate
         uv pip install -e .
     - name: Test with pytest
       run: |
