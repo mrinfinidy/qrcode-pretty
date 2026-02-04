@@ -149,13 +149,12 @@ cd qrcode-pretty
 
 # Create virtual environment and install in editable mode
 uv venv
-source .venv/bin/activate  # On Linux/Mac
 # or: .venv\Scripts\activate  # On Windows
 
 uv pip install -e .
 
 # Run the tool
-qrcode-pretty -d "test"
+uv run qrcode-pretty -d "test"
 ```
 
 #### Using pip/venv
@@ -198,6 +197,20 @@ uv build
 # Output will be in dist/ e.g.:
 # - dist/qrcode_pretty-1.0.0-py3-none-any.whl
 # - dist/qrcode_pretty-1.0.0.tar.gz
+```
+
+### Testing
+
+#### uv
+
+This section assumes that you have successfully set up a development environment with uv.
+
+```bash
+# Install dev  dependencies
+uv sync --extra dev
+
+# Run tests
+uv run pytest
 ```
 
 ## Usage
