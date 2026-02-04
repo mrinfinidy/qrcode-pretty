@@ -25,28 +25,25 @@ def output_dir(tmp_path):
 @pytest.fixture
 def reference_images_dir():
     """Provide path to reference images directory."""
-    return Path("reference_images")
+    return Path("tests/reference_images")
 
 
 def test_qrcode_generation_test_data(output_dir, reference_images_dir):
     """Test QR code generation for 'test' data matches reference image."""
     generated_image = output_dir / "qrcode.png"
-    reference_image = reference_images_dir / "test.png"
-    
-    # Verify reference image exists
+    reference_image = reference_images_dir / "simple.png"
+
     assert reference_image.exists(), f"Reference image not found at {reference_image}"
-    
-    # Run the command
+
     cmd = ["uv", "run", "qrcode-pretty", "-d", "test", "--output", str(output_dir)]
     result = subprocess.run(cmd, capture_output=True, text=True)
-    
+
     assert result.returncode == 0, f"Command failed: {result.stderr}"
     assert generated_image.exists(), f"Generated image not found at {generated_image}"
-    
-    # Compare images by hash
+
     generated_hash = get_image_hash(generated_image)
     reference_hash = get_image_hash(reference_image)
-    
+
     assert (
         generated_hash == reference_hash
     ), f"Image hash mismatch:\n  Generated: {generated_hash}\n  Reference: {reference_hash}"
