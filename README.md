@@ -99,7 +99,7 @@ cd qrcode-pretty
 makepkg -si
 ```
 
-### Using uv
+### uv
 
 [uv](https://github.com/astral-sh/uv) is a fast Python package installer and resolver, which I prefer over pip/pipx:
 
@@ -107,7 +107,7 @@ makepkg -si
 uv tool install qrcode-pretty
 ```
 
-### Using pipx
+### pipx
 
 For installing as a standalone command-line tool:
 
@@ -126,7 +126,7 @@ pipx install qrcode-pretty
 
 ### Setting Up Development Environment
 
-#### Using NixOS
+#### NixOS
 
 ```bash
 # Clone the repository
@@ -140,7 +140,7 @@ nix-shell
 nix develop
 ```
 
-#### Using uv
+#### uv
 
 ```bash
 # Clone the repository
@@ -157,7 +157,7 @@ uv pip install -e .
 uv run qrcode-pretty -d "test"
 ```
 
-#### Using pip/venv
+#### pip/venv
 
 ```bash
 # Clone the repository
