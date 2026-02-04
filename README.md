@@ -149,13 +149,12 @@ cd qrcode-pretty
 
 # Create virtual environment and install in editable mode
 uv venv
-source .venv/bin/activate  # On Linux/Mac
 # or: .venv\Scripts\activate  # On Windows
 
 uv pip install -e .
 
 # Run the tool
-qrcode-pretty -d "test"
+uv run qrcode-pretty -d "test"
 ```
 
 #### Using pip/venv
