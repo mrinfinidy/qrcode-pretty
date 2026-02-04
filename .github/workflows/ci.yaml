@@ -9,25 +9,23 @@ permissions:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v6
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.12"
-    - name : Install UV
-      run: |
-        pip install uv
-        uv --version
-    - name: Install dependencies
-      run: |
-        uv venv 
-        source .venv/bin/activate
-        uv pip install -e .
-    - name: Test with pytest
-      run: |
-        uv add pytest
-        uv run pytest
+      - uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.12"
+      - name: Install UV
+        run: |
+          pip install uv
+          uv --version
+      - name: Install dependencies
+        run: |
+          uv venv 
+          uv pip install -e .
+      - name: Test with pytest
+        run: |
+          uv add pytest
+          uv run pytest
