@@ -237,9 +237,56 @@ Assets are properly removed when uninstalling:
 
 ---
 
+## Version Updates
+
+When releasing a new version:
+
+1. **Update version** in `pyproject.toml` or run `uv version --bump patch`
+2. **Update Debian changelog:**
+   ```bash
+   dch -v 1.0.3-1 "New upstream release"
+   ```
+3. **Update PKGBUILD** `pkgver` and `pkgrel`
+4. **Rebuild and test** all packages
+5. **Commit changes** and tag release
+6. **Publish** to PyPI and AUR
+
+---
+
 ## PyPI Publishing
 
-### Build for PyPI
+### GitHub CD
+
+This section assumes that the version has been updated (see previous section _Version Updates_)
+
+This repository has a CD defined in GitHub Actions. It runs based on git tags.
+The CD automatically builds and publishes the package using uv.
+
+```bash
+# Create version tag matching the current pyproject.toml version
+git tag <version>
+
+# Push version tag
+git push origin <version>
+
+```
+
+### Manually using uv
+
+```bash
+# Build the package
+uv build
+
+# (Optional) Publish to TestPyPI
+uv publish --publish-url https://test.pypi.org/legacy/
+
+# Publish
+uv publish
+```
+
+### Manually using pip
+
+#### Build for PyPI
 
 ```bash
 # Install build tools
@@ -253,7 +300,7 @@ python -m build
 # - qrcode_pretty-1.0.3.tar.gz
 ```
 
-### Publish to PyPI
+#### Publish to PyPI
 
 ```bash
 # Upload to Test PyPI (recommended first)
@@ -265,22 +312,6 @@ pip install --index-url https://test.pypi.org/simple/ qrcode-pretty
 # Upload to PyPI
 twine upload dist/*
 ```
-
----
-
-## Version Updates
-
-When releasing a new version:
-
-1. **Update version** in `pyproject.toml`
-2. **Update Debian changelog:**
-   ```bash
-   dch -v 1.0.3-1 "New upstream release"
-   ```
-3. **Update PKGBUILD** `pkgver` and `pkgrel`
-4. **Rebuild and test** all packages
-5. **Commit changes** and tag release
-6. **Publish** to PyPI and AUR
 
 ---
 
