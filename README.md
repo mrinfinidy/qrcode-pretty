@@ -242,6 +242,7 @@ Options:
   -r, --color-outer <hex>                 Outer eye color hex code
   -o, --output <directory or filename>    Output directory path or filename (default: ~/Pictures/qrcode-pretty/qrcode.png)
       --svg                               Also generate SVG output
+      --transparent                       Transparent QR code background
       --version <int>                     QR version (default: 5)
       --box-size <int>                    Box size in pixels (default: 10)
       --border <int>                      Border size in boxes (default: 4)
