@@ -34,6 +34,16 @@ DRAWER_CLASSES = {
     "horizontal-bars": HorizontalBarsDrawer,
 }
 
+
+STYLE_MAPPING = {
+    "SquareModuleDrawer": "square",
+    "GappedSquareModuleDrawer": "gapped-square",
+    "CircleModuleDrawer": "circle",
+    "RoundedModuleDrawer": "round",
+    "VerticalBarsDrawer": "vertical-bars",
+    "HorizontalBarsDrawer": "horizontal-bars",
+}
+
 ERROR_CORRECTION_LEVELS = {
     "L": ERROR_CORRECT_L,
     "M": ERROR_CORRECT_M,
