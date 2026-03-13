@@ -164,25 +164,45 @@ def create_image(
     error_correction,
     box_size,
     border,
+    transparent=False,
 ):
+    def get_colors(hex_color):
+        """Return front and back colors with matching tuple lengths."""
+        rgb = hex_to_rgb(hex_color)
+        if transparent:
+            return rgb + (255,), (255, 255, 255, 0)  # RGBA front, RGBA back
+        return rgb, (255, 255, 255)  # RGB front, RGB back
+
+    inner_front, inner_back = get_colors(inner_eye_color)
     inner_eyes_image = qr.make_image(
         image_factory=StyledPilImage,
         eye_drawer=drawer_instance_inner,
-        color_mask=SolidFillColorMask(front_color=hex_to_rgb(inner_eye_color)),
+        color_mask=SolidFillColorMask(
+            front_color=inner_front,
+            back_color=inner_back,
+        ),
     )
 
+    outer_front, outer_back = get_colors(outer_eye_color)
     outer_eyes_image = qr.make_image(
         image_factory=StyledPilImage,
         eye_drawer=drawer_instance_outer,
-        color_mask=SolidFillColorMask(front_color=hex_to_rgb(outer_eye_color)),
+        color_mask=SolidFillColorMask(
+            front_color=outer_front,
+            back_color=outer_back,
+        ),
     )
 
     logo_path = get_logo_path(input_image)
 
+    base_front, base_back = get_colors(base_color)
     qr_image = qr.make_image(
         image_factory=StyledPilImage,
         module_drawer=drawer_instance,
-        color_mask=SolidFillColorMask(front_color=hex_to_rgb(base_color)),
+        color_mask=SolidFillColorMask(
+            front_color=base_front,
+            back_color=base_back,
+        ),
     )
 
     inner_eye_mask = style_inner_eyes(qr_image, box_size, border, qr.modules_count)
@@ -258,6 +278,7 @@ def make_qrcode(
     box_size=10,
     border=4,
     output_dir="~/Pictures/qrcode-pretty/",
+    transparent=False,
 ):
     qr = create_qrcode_instance(
         version=version,
@@ -279,6 +300,7 @@ def make_qrcode(
         error_correction,
         box_size,
         border,
+        transparent,
     )
     final_image = generate_qr_code(qr, qr_image_parts, drawer_instance)
     save_image(final_image, output_dir)
@@ -298,6 +320,7 @@ def make_qrcode_svg(
     drawer_instance_inner=None,
     drawer_instance_outer=None,
     output_dir="~/Pictures/qrcode-pretty/",
+    transparent=False,
 ):
     output_dir = os.path.expanduser(output_dir)  # Expand tilde
     module_style = get_style_name(drawer_instance)
@@ -328,8 +351,9 @@ def make_qrcode_svg(
     svg_parts = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         f'<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 {svg_size} {svg_size}">',
-        f'<rect width="{svg_size}" height="{svg_size}" fill="white"/>',
     ]
+    if not transparent:
+        svg_parts.append(f'<rect width="{svg_size}" height="{svg_size}" fill="white"/>')
     drawer_func = get_svg_module_drawer(module_style)
     draw_modules(
         svg_parts,

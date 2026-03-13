@@ -20,6 +20,7 @@ Options:
   -r, --color-outer <hex>                 Outer eye color hex code
   -o, --output <directory or filename>    Output directory path or filename (default: ~/Pictures/qrcode-pretty/qrcode.png)
       --svg                               Also generate SVG output (optional flag)
+      --transparent                       Transparent QR code background
       --version <int>                     QR version (default: 5)
       --box-size <int>                    Box size in pixels (default: 10)
       --border <int>                      Border size in boxes (default: 4)
@@ -50,6 +51,7 @@ def main(argv=None):
                 "color-inner=",
                 "color-outer=",
                 "svg",
+                "transparent",
                 "style=",
                 "style-inner=",
                 "style-outer=",
@@ -124,6 +126,9 @@ def main(argv=None):
 
         elif opt == "--svg":
             include_svg = True
+
+        elif opt == "--transparent":
+            kwargs["transparent"] = True
 
     if "input_data" not in kwargs:
         print("Error: Missing required option --data/-d")
