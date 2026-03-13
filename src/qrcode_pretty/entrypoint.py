@@ -133,7 +133,7 @@ def main(argv=None):
     make_qrcode(**kwargs)
 
     if include_svg:
-        make_qrcode_svg(kwargs["input_data"], kwargs.get("output_dir", "~/Pictures/qrcode-pretty/"))
+        make_qrcode_svg(**kwargs)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

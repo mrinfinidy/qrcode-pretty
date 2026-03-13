@@ -40,3 +40,12 @@ ERROR_CORRECTION_LEVELS = {
     "Q": ERROR_CORRECT_Q,
     "H": ERROR_CORRECT_H
 }
+
+MIME_TYPES = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".svg": "image/svg+xml",
+    ".webp": "image/webp",
+}

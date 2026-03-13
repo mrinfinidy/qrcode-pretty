@@ -11,6 +11,8 @@ from PIL import Image, ImageDraw
 import os
 import sys
 
+from qrcode_pretty.const import DRAWER_CLASSES
+from qrcode_pretty.svg_utils import draw_modules, embed_logo, get_style_name, create_svg_eye_elements, get_svg_module_drawer, get_svg_output_path
 
 # Custom function for eye styling. These create the eye masks
 class Qr_image_parts:
@@ -302,17 +304,79 @@ def make_qrcode(
     save_image(final_image, output_dir)
 
 
-# Additionaly to the png qrcode an svg is created as well
-def make_qrcode_svg(input_data, output_dir="~/Pictures/qrcode-pretty/"):
+def make_qrcode_svg(
+    input_data,
+    base_color="#000000",
+    inner_eye_color="#000000",
+    outer_eye_color="#000000",
+    input_image=None,
+    version=5,
+    error_correction=ERROR_CORRECT_H,
+    box_size=10,
+    border=4,
+    drawer_instance=None,
+    drawer_instance_inner=None,
+    drawer_instance_outer=None,
+    output_dir="~/Pictures/qrcode-pretty/",
+):
     output_dir = os.path.expanduser(output_dir)  # Expand tilde
-    qr = create_qrcode_instance()
-    add_data(qr, input_data)
-    qr_svg = qr.make_image(
-        image_factory=qrcode.image.svg.SvgImage,
-        module_drawer=SvgSquareDrawer(),
+    module_style = get_style_name(drawer_instance)
+    inner_eye_style = get_style_name(drawer_instance_inner)
+    outer_eye_style = get_style_name(drawer_instance_outer)
+
+    if module_style is None:
+        module_style = "round"
+
+    if inner_eye_style is None:
+        inner_eye_style = module_style
+
+    if outer_eye_style is None:
+        outer_eye_style = module_style
+
+    qr = create_qrcode_instance(
+        version=version,
+        error_correction=error_correction,
+        box_size=box_size,
+        border=border
     )
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    result_path = os.path.join(output_dir, "qrcode.svg")
+    add_data(qr, input_data)
+
+    modules = qr.modules
+    modules_count = qr.modules_count
+    svg_size = (modules_count + border * 2) * box_size
+
+    svg_parts = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        f'<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 {svg_size} {svg_size}">',
+        f'<rect width="{svg_size}" height="{svg_size}" fill="white"/>',
+    ]
+    drawer_func = get_svg_module_drawer(module_style)
+    draw_modules(
+        svg_parts,
+        modules,
+        modules_count,
+        border,
+        box_size,
+        base_color,
+        drawer_func
+    )
+    eye_elements = create_svg_eye_elements(
+        box_size,
+        border,
+        modules_count,
+        inner_eye_color,
+        outer_eye_color,
+        inner_eye_style,
+        outer_eye_style
+    )
+    svg_parts.extend(eye_elements)
+    embed_logo(input_image, svg_size, box_size, border)
+    svg_parts.append('</svg>')
+    result_path = get_svg_output_path(output_dir)
+    output_parent_dir = os.path.dirname(result_path)
+    if output_parent_dir and not os.path.exists(output_parent_dir):
+        print(f"Output directory '{output_parent_dir}' does not exist. Creating it.")
+        os.makedirs(output_parent_dir)
+
     print("Saving qr-code (svg) to: ", result_path)
-    qr_svg.save(result_path)
+    save_image(svg_parts, result_path)
