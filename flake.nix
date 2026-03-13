@@ -32,9 +32,27 @@
           default = qrcode-pretty;
         }
       );
+
       packages = forAllSystems (
         system: nixpkgs.lib.filterAttrs (_: v: nixpkgs.lib.isDerivation v) self.legacyPackages.${system}
       );
+
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
+          };
+        in
+        {
+          default = pkgs.mkShell {
+            inputsFrom = [ self.packages.${system}.qrcode-pretty ];
+            nativeBuildInputs = [ pkgs.python3Packages.pytest ];
+          };
+        }
+      );
+
       nixosModules = import ./modules;
     };
 }
