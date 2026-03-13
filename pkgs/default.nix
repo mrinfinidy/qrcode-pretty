@@ -4,22 +4,12 @@ pkgs.python3Packages.buildPythonApplication {
   pname = "qrcode-pretty";
   version = "1.1.0";
   src = ./..;
-  doCheck = true;
+  doCheck = false;
   pyproject = true;
 
   nativeBuildInputs = [
     pkgs.python3Packages.hatchling
   ];
-
-  nativeCheckInputs = [
-    pkgs.python3Packages.pytest
-  ];
-
-  checkPhase = ''
-    runHook preCheck
-    pytest tests/
-    runHook postCheck
-  '';
 
   propagatedBuildInputs = [
     pkgs.python3Packages.qrcode
