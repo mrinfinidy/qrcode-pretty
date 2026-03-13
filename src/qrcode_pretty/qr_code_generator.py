@@ -13,25 +13,77 @@ import os
 from qrcode_pretty.input_image_utils import find_default_image
 from qrcode_pretty.svg_utils import draw_modules, embed_logo, get_style_name, create_svg_eye_elements, get_svg_module_drawer, get_svg_output_path
 
-# Custom function for eye styling. These create the eye masks
+
+def get_logo_path(input_image):
+    if not input_image or input_image == "blank":
+        return None
+
+    if input_image == "default":
+        return find_default_image()
+
+    path_expanded = os.path.expanduser(input_image)
+    if os.path.isfile(path_expanded):
+        return path_expanded
+
+    assets_path = os.path.join("./assets/", input_image)
+    if os.path.isfile(assets_path):
+        return assets_path
+
+    return None
+
+
+def overlay_logo_png(qr_image, logo_path, logo_ratio=0.25):
+    if not logo_path or not os.path.isfile(logo_path):
+        return qr_image
+
+    try:
+        logo = Image.open(logo_path)
+
+        qr_width, qr_height = qr_image.size
+        logo_orig_width, logo_orig_height = logo.size
+
+        target_size = int(qr_width * logo_ratio)
+
+        scale = min(target_size / logo_orig_width, target_size / logo_orig_height)
+        scaled_width = int(logo_orig_width * scale)
+        scaled_height = int(logo_orig_height * scale)
+
+        logo_resized = logo.resize((scaled_width, scaled_height), Image.Resampling.LANCZOS)
+
+        logo_x = (qr_width - scaled_width) // 2
+        logo_y = (qr_height - scaled_height) // 2
+
+        if logo_resized.mode != "RGBA":
+            logo_resized = logo_resized.convert("RGBA")
+
+        result = qr_image.copy()
+
+        if "A" in logo_resized.getbands():
+            result.alpha_composite(logo_resized, (logo_x, logo_y))
+        else:
+            result.paste(logo_resized, (logo_x, logo_y))
+
+        return result
+    except Exception as e:
+        print(f"Warning: Could not overlay logo: {e}")
+        return qr_image
+
 class Qr_image_parts:
     def __init__(
         self,
-        embeded_image_name,
+        logo_path,
         inner_eyes_image,
         inner_eye_mask,
         outer_eyes_image,
         outer_eye_mask,
         qr_image,
-        qr_image_simple,
     ) -> None:
-        self.embeded_image_name = embeded_image_name
+        self.logo_path = logo_path
         self.inner_eyes_image = inner_eyes_image
         self.inner_eye_mask = inner_eye_mask
         self.outer_eyes_image = outer_eyes_image
         self.outer_eye_mask = outer_eye_mask
         self.qr_image = qr_image
-        self.qr_image_simple = qr_image_simple
 
 def hex_to_rgb(hex):
     hex = hex.lstrip("#")
@@ -125,30 +177,9 @@ def create_image(
         color_mask=SolidFillColorMask(front_color=hex_to_rgb(outer_eye_color)),
     )
 
-    embeded_image_name = input_image
+    logo_path = get_logo_path(input_image)
 
-    if embeded_image_name == "default":
-        embeded_image_path = find_default_image()
-    elif embeded_image_name:
-        path_expanded = os.path.expanduser(embeded_image_name)
-        if os.path.isfile(path_expanded):
-            embeded_image_path = path_expanded
-        else:
-            embeded_image_path = None
-    else:
-        embeded_image_path = None
-
-    kwargs = {
-        "image_factory": StyledPilImage,
-        "module_drawer": drawer_instance,
-        "color_mask": SolidFillColorMask(front_color=hex_to_rgb(base_color)),
-    }
-    if embeded_image_path:
-        kwargs["embeded_image_path"] = embeded_image_path
-
-    qr_image = qr.make_image(**kwargs)
-
-    qr_image_simple = qr.make_image(
+    qr_image = qr.make_image(
         image_factory=StyledPilImage,
         module_drawer=drawer_instance,
         color_mask=SolidFillColorMask(front_color=hex_to_rgb(base_color)),
@@ -157,13 +188,12 @@ def create_image(
     inner_eye_mask = style_inner_eyes(qr_image, box_size, border, qr.modules_count)
     outer_eye_mask = style_outer_eyes(qr_image, box_size, border, qr.modules_count)
     return Qr_image_parts(
-        embeded_image_name,
+        logo_path,
         inner_eyes_image,
         inner_eye_mask,
         outer_eyes_image,
         outer_eye_mask,
         qr_image,
-        qr_image_simple,
     )
 
 
@@ -175,48 +205,28 @@ def generate_qr_code(qr, qr_image_parts, drawer_instance):
     qr_image_parts.inner_eye_mask = qr_image_parts.inner_eye_mask.convert("L")
     qr_image_parts.outer_eye_mask = qr_image_parts.outer_eye_mask.convert("L")
 
-    if (
-        not qr_image_parts.embeded_image_name
-        or qr_image_parts.embeded_image_name == "blank"
-    ):
-        intermediate_image = Image.composite(
-            qr_image_parts.inner_eyes_image,
-            qr_image_parts.qr_image_simple,
-            qr_image_parts.inner_eye_mask,
-        )
-    elif qr_image_parts.embeded_image_name == "default":
-        intermediate_image = Image.composite(
-            qr_image_parts.inner_eyes_image,
-            qr_image_parts.qr_image,
-            qr_image_parts.inner_eye_mask,
-        )
-    else:
-        embeded_image_path = os.path.expanduser(qr_image_parts.embeded_image_name)
-        if not os.path.isabs(embeded_image_path) and not os.path.isfile(
-            embeded_image_path
-        ):
-            embeded_image_path = os.path.join("./assets/", embeded_image_path)
+    intermediate_image = Image.composite(
+        qr_image_parts.inner_eyes_image,
+        qr_image_parts.qr_image,
+        qr_image_parts.inner_eye_mask,
+    )
 
-        qr_image = qr.make_image(
-            image_factory=StyledPilImage,
-            module_drawer=drawer_instance,
-            embeded_image_path=embeded_image_path,
-        )
-        intermediate_image = Image.composite(
-            qr_image_parts.inner_eyes_image, qr_image, qr_image_parts.inner_eye_mask
-        )
-
-    return Image.composite(
+    final_image = Image.composite(
         qr_image_parts.outer_eyes_image,
         intermediate_image,
         qr_image_parts.outer_eye_mask,
     )
 
+    if qr_image_parts.logo_path:
+        final_image = overlay_logo_png(final_image, qr_image_parts.logo_path)
+
+    return final_image
+
 
 # Save the image to a file
 def save_image(final_image, output_dir):
     output_dir = os.path.expanduser(output_dir) 
-    
+
     if os.path.isdir(output_dir) or not os.path.splitext(output_dir)[1]:
         if not os.path.exists(output_dir):
             print(f"Output directory '{output_dir}' does not exist. Creating it.")
@@ -228,7 +238,7 @@ def save_image(final_image, output_dir):
             print(f"Output directory '{output_parent_dir}' does not exist. Creating it.")
             os.makedirs(output_parent_dir)
         result_path = output_dir
-    
+
     print("Saving qr-code (png) to: ", result_path)
     final_image.save(result_path)
 
