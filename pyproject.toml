@@ -43,7 +43,7 @@ qrcode-pretty = "qrcode_pretty.entrypoint:main"
 
 [project.optional-dependencies]
 dev = [
-  "pytest>=9.0.0"
+  "pytest>=9.0.2"
 ]
 [tool.hatch.build.targets.wheel]
 packages = ["src/qrcode_pretty"]

@@ -209,7 +209,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "pillow", specifier = ">=9.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.2" },
     { name = "qrcode", extras = ["pil"], specifier = ">=7.0" },
 ]
 provides-extras = ["dev"]
