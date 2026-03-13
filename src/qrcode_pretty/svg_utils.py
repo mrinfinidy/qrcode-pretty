@@ -149,12 +149,12 @@ def create_svg_eye_elements(
                 if 2 <= deltaX <= 4 and 2 <= deltaY <= 4:
                     continue
 
-            px = x + deltaX * box_size
-            py = y + deltaY * box_size
+                px = x + deltaX * box_size
+                py = y + deltaY * box_size
 
-            element = outer_drawer_func(px, py, box_size, outer_eye_color)
-            if element:
-                elements.append(element)
+                element = outer_drawer_func(px, py, box_size, outer_eye_color)
+                if element:
+                    elements.append(element)
 
         for deltaY in range(3):
             for deltaX in range(3):
