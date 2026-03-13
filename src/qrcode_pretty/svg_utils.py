@@ -2,7 +2,7 @@ import os
 import base64
 import io
 
-from qrcode_pretty.qr_code_generator import find_default_image
+from qrcode_pretty.input_image_utils import find_default_image
 from .const import MIME_TYPES, STYLE_MAPPING
 
 def image_to_base64(image_path):

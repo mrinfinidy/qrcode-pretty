@@ -9,8 +9,8 @@ from qrcode.image.styles.moduledrawers.pil import RoundedModuleDrawer
 from qrcode.image.styles.colormasks import RadialGradiantColorMask, SolidFillColorMask
 from PIL import Image, ImageDraw
 import os
-import sys
 
+from qrcode_pretty.input_image_utils import find_default_image
 from qrcode_pretty.svg_utils import draw_modules, embed_logo, get_style_name, create_svg_eye_elements, get_svg_module_drawer, get_svg_output_path
 
 # Custom function for eye styling. These create the eye masks
@@ -32,35 +32,6 @@ class Qr_image_parts:
         self.outer_eye_mask = outer_eye_mask
         self.qr_image = qr_image
         self.qr_image_simple = qr_image_simple
-
-
-def find_default_image():
-    """Find the default image in standard locations.
-    
-    Searches for the default image in the following order:
-    1. Environment variable DEFAULT_IMAGE (highest priority)
-    2. System-wide install: /usr/share/qrcode-pretty/assets/default.png
-    3. Python prefix install: {sys.prefix}/share/qrcode-pretty/assets/default.png
-    4. Local development: ./assets/default.png
-    5. Package relative: ../../assets/default.png (from module directory)
-    
-    Returns:
-        str: Path to the default image, or fallback to ./assets/default.png
-    """
-    search_paths = [
-        os.environ.get("DEFAULT_IMAGE"),
-        "/usr/share/qrcode-pretty/assets/default.png",
-        os.path.join(sys.prefix, "share/qrcode-pretty/assets/default.png"),
-        "./assets/default.png",
-        os.path.join(os.path.dirname(__file__), "..", "..", "assets", "default.png"),
-    ]
-    
-    for path in search_paths:
-        if path and os.path.isfile(path):
-            return path
-    
-    return "./assets/default.png"
-
 
 def hex_to_rgb(hex):
     hex = hex.lstrip("#")
