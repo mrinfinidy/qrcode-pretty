@@ -327,7 +327,7 @@ def draw_modules(svg_parts, modules, modules_count, border, box_size, base_color
 
 def embed_logo(svg_parts, input_image, svg_size, box_size, border):
     if input_image and input_image not in ["blank", None]:
-        if input_image == "defaultl":
+        if input_image == "default":
             logo_path = find_default_image()
         else:
             logo_path = os.path.expanduser(input_image)
