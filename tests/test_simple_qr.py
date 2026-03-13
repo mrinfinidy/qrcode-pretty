@@ -31,7 +31,7 @@ def reference_images_dir():
 def test_qrcode_generation_test_data(output_dir, reference_images_dir):
     """Test QR code generation for 'test' data matches reference image."""
     generated_image = output_dir / "qrcode.png"
-    reference_image = reference_images_dir / "simple.png"
+    reference_image = reference_images_dir / "simple_reference.png"
 
     assert reference_image.exists(), f"Reference image not found at {reference_image}"
 
