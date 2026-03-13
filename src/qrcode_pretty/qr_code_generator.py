@@ -11,7 +11,6 @@ from PIL import Image, ImageDraw
 import os
 import sys
 
-from qrcode_pretty.const import DRAWER_CLASSES
 from qrcode_pretty.svg_utils import draw_modules, embed_logo, get_style_name, create_svg_eye_elements, get_svg_module_drawer, get_svg_output_path
 
 # Custom function for eye styling. These create the eye masks
@@ -358,6 +357,7 @@ def make_qrcode_svg(
         border,
         box_size,
         base_color,
+        module_style,
         drawer_func
     )
     eye_elements = create_svg_eye_elements(
@@ -370,7 +370,7 @@ def make_qrcode_svg(
         outer_eye_style
     )
     svg_parts.extend(eye_elements)
-    embed_logo(input_image, svg_size, box_size, border)
+    embed_logo(svg_parts, input_image, svg_size, box_size, border)
     svg_parts.append('</svg>')
     result_path = get_svg_output_path(output_dir)
     output_parent_dir = os.path.dirname(result_path)
@@ -379,4 +379,5 @@ def make_qrcode_svg(
         os.makedirs(output_parent_dir)
 
     print("Saving qr-code (svg) to: ", result_path)
-    save_image(svg_parts, result_path)
+    with open(result_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(svg_parts))

@@ -3,7 +3,7 @@ import base64
 import io
 
 from qrcode_pretty.qr_code_generator import find_default_image
-from .const import MIME_TYPES, DRAWER_CLASSES
+from .const import MIME_TYPES, STYLE_MAPPING
 
 def image_to_base64(image_path):
     with open(image_path, "rb") as image_file:
@@ -92,18 +92,23 @@ def get_svg_module_drawer(style):
     }
     return style_map.get(style, svg_draw_square)
 
-def draw_modules(svg_parts, modules, modules_count, border, box_size, base_color, drawer_func):
+def draw_modules(svg_parts, modules, modules_count, border, box_size, base_color, style, drawer_func,):
     for y in range(modules_count):
         for x in range(modules_count):
             if modules[y][x] and not should_skip_module(x, y, modules_count):
                 px = (border + x) * box_size
                 py = (border + y) * box_size
 
-                element = drawer_func(px, py, box_size, base_color, modules, y, x, modules_count)
+                if style in ["vertical-bars", "horizontal-bars"]:
+                    element = drawer_func(px, py, box_size, base_color, modules, y, x, modules_count)
+                else:
+                    element = drawer_func(px, py, box_size, base_color)
+
                 if element:
                     svg_parts.append(element)
 
-def embed_logo(input_image, svg_size, box_size, border):
+
+def embed_logo(svg_parts, input_image, svg_size, box_size, border):
     if input_image and input_image not in ["blank", None]:
         if input_image == "defaultl":
             logo_path = find_default_image()
@@ -120,10 +125,10 @@ def embed_logo(input_image, svg_size, box_size, border):
 
 def get_style_name(drawer_instance):
     if drawer_instance is None:
-        return "square"
+        return None
 
     drawer_class_name = drawer_instance.__class__.__name__
-    return DRAWER_CLASSES.get(drawer_class_name, "square")
+    return STYLE_MAPPING.get(drawer_class_name, "round")
 
 def create_svg_eye_elements(
     box_size,
@@ -179,7 +184,7 @@ def create_logo_element(logo_path, svg_size, box_size, border):
         bg_x = logo_x - bg_padding
         bg_y = logo_y - bg_padding
 
-        bg_rectangle = f'<rect x="{bg_x}" y="{bg_y}" width="{bg_size}" height="{bg_size}"fill="white" opacity="0.9"/>'
+        bg_rectangle = f'<rect x="{bg_x}" y="{bg_y}" width="{bg_size}" height="{bg_size}" fill="white" opacity="0.9"/>'
         img_element = f'<image x="{logo_x}" y="{logo_y}" width="{logo_size}" height="{logo_size}" href="{base64_img}"/>'
 
         return bg_rectangle + '\n' + img_element
