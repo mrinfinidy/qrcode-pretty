@@ -151,7 +151,7 @@ def create_svg_eye_elements(
         for deltaY in range(7):
             for deltaX in range(7):
                 # Skip 3x3 hole in the middle
-                if 2 <= deltaX <= 4 and 2 <= deltaY <= 4:
+                if 1 <= deltaX <= 5 and 1 <= deltaY <= 5:
                     continue
 
                 px = x + deltaX * box_size
