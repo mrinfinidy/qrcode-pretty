@@ -29,7 +29,7 @@ Options:
 Available styles: square, gapped-square, circle, round, vertical-bars, horizontal-bars
 
 Example:
-  entrypoint.py -d "https://example.com" -i logo.png -b #000000 -n #000fff -r #fff000 -o ./output --style circle --style-inner square --style-outer circle --svg
+  entrypoint.py -d "https://example.com" -i logo.png -b '#000000' -n '#000fff' -r '#fff000' -o ./output --style circle --style-inner square --style-outer circle --svg
 """)
 
 def main(argv=None):
