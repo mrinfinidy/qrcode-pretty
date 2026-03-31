@@ -43,6 +43,18 @@ jobs:
 
           echo "Tag matches pyproject.toml version"
 
+      - name: Validate debian/changelog version
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          DEBIAN_VERSION=$(dpkg-parsechangelog -S Version | sed 's/-.*//')
+          echo "debian/changelog version: $DEBIAN_VERSION"
+          if [ "$TAG_NAME" != "$DEBIAN_VERSION" ]; then
+            echo "ERROR: Tag ($TAG_NAME) doesn't match debian/changelog version ($DEBIAN_VERSION)"
+            echo "Update debian/changelog before tagging a release."
+            exit 1
+          fi
+          echo "Tag matches debian/changelog version"
+
   check_pypi:
     needs: details
     runs-on: ubuntu-latest
