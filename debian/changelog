@@ -1,3 +1,9 @@
+qrcode-pretty (1.1.0-1) unstable; urgency=medium
+
+  * New upstream release 1.1.0
+
+ -- afkdev8 <mail@afkdev8.com>  Tue, 31 Mar 2026 00:00:00 +0000
+
 qrcode-pretty (1.0.3-1) unstable; urgency=medium
 
   * Initial release
