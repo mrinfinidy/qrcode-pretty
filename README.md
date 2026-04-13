@@ -206,9 +206,6 @@ uv build
 This section assumes that you have successfully set up a development environment with uv.
 
 ```bash
-# Install dev  dependencies
-uv sync --extra dev
-
 # Run tests
 uv run pytest
 ```
