@@ -47,3 +47,23 @@ def test_qrcode_generation_test_data(output_dir, reference_images_dir):
     assert (
         generated_hash == reference_hash
     ), f"Image hash mismatch:\n  Generated: {generated_hash}\n  Reference: {reference_hash}"
+
+def test_qrcode_generation_test_data_run_internally(output_dir, reference_images_dir):
+    """Test QR code generation for 'test' data matches reference image."""
+    generated_image = output_dir / "qrcode.png"
+    reference_image = reference_images_dir / "simple_reference.png"
+
+    assert reference_image.exists(), f"Reference image not found at {reference_image}"
+
+    import qrcode_pretty.entrypoint
+    result = qrcode_pretty.entrypoint.main(["-d", "test", "--output", str(output_dir)])
+
+    assert result is None, f"main always returns None"
+    assert generated_image.exists(), f"Generated image not found at {generated_image}"
+
+    generated_hash = get_image_hash(generated_image)
+    reference_hash = get_image_hash(reference_image)
+
+    assert (
+        generated_hash == reference_hash
+    ), f"Image hash mismatch:\n  Generated: {generated_hash}\n  Reference: {reference_hash}"
