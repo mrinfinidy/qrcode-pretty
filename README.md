@@ -209,7 +209,7 @@ Available styles: square, gapped-square, circle, round, vertical-bars, horizonta
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development requirements, setup and testing guide.
+See [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for development requirements, setup and testing guide.
 
 ## Package Information
 
