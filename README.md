@@ -11,6 +11,20 @@ and provides various options to customize the qrcode.
 You can adjust style, color and add an image in the middle.
 Check out the usage for all available options.
 
+## Table of Contents
+
+- [Installation](#installation)
+  - [NixOS](#nixos)
+  - [Debian/Ubuntu](#debianubuntu)
+  - [Arch Linux](<#arch-linux-(aur)>)
+  - [Using uv](#using-uv)
+  - [Using pipx](#using-pipx)
+- [Usage](#usage)
+  - [Command-Line Options](#command-line-options)
+  - [Sample Gallery](#sample-gallery)
+- [Contributing](#contributing)
+- [Package Information](#package-information)
+
 ## Installation
 
 ### NixOS
@@ -115,104 +129,6 @@ For installing as a standalone command-line tool:
 pipx install qrcode-pretty
 ```
 
-## Development
-
-### Requirements
-
-- Python 3.8 or higher
-- Dependencies (automatically installed):
-  - qrcode[pil] >= 7.0
-  - pillow >= 9.0
-
-### Setting Up Development Environment
-
-#### Using NixOS
-
-```bash
-# Clone the repository
-git clone https://github.com/mrinfinidy/qrcode-pretty.git
-cd qrcode-pretty
-
-# Enter development shell
-nix-shell
-
-# Or use the flake development shell
-nix develop
-```
-
-#### Using uv
-
-```bash
-# Clone the repository
-git clone https://github.com/mrinfinidy/qrcode-pretty.git
-cd qrcode-pretty
-
-# Create virtual environment and install in editable mode
-uv venv
-# or: .venv\Scripts\activate  # On Windows
-
-uv pip install -e .
-
-# Run the tool
-uv run qrcode-pretty -d "test"
-```
-
-#### Using pip/venv
-
-```bash
-# Clone the repository
-git clone https://github.com/mrinfinidy/qrcode-pretty.git
-cd qrcode-pretty
-
-# Create and activate virtual environment
-python -m venv .venv
-source .venv/bin/activate  # On Linux/Mac
-# or: .venv\Scripts\activate  # On Windows
-
-# Install in editable mode
-pip install -e .
-
-# Run the tool
-qrcode-pretty -d "test"
-```
-
-### Building the Package
-
-#### With Nix
-
-```bash
-# Build with Nix
-nix build .#qrcode-pretty
-
-# Result will be in ./result/
-./result/bin/qrcode-pretty --help
-```
-
-#### With uv
-
-```bash
-# Build wheel and source distribution
-uv build
-
-# Output will be in dist/ e.g.:
-# - dist/qrcode_pretty-1.0.0-py3-none-any.whl
-# - dist/qrcode_pretty-1.0.0.tar.gz
-```
-
-### Testing
-
-#### uv
-
-This section assumes that you have successfully set up a development environment with uv.
-
-```bash
-# Install dev  dependencies
-uv sync --extra dev
-
-# Run tests
-uv run pytest
-```
-
 ## Usage
 
 QR Code Pretty provides the `qrcode-pretty` command-line tool.
@@ -290,6 +206,10 @@ Available styles: square, gapped-square, circle, round, vertical-bars, horizonta
 ![qrcode lemons](./samples/qrcode-lemons.png)
 
 `qrcode-pretty --data "lemons" --image "~/Pictures/lemons.png" --style square --style-inner circle --style-outer gapped-square --base "#000000" --color-inner "#000000" --color-outer "#000000" --output "~/Pictures/"`
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development requirements, setup and testing guide.
 
 ## Package Information
 
