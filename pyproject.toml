@@ -41,10 +41,6 @@ Issues = "https://github.com/mrinfinidy/qrcode-pretty/issues"
 [project.scripts]
 qrcode-pretty = "qrcode_pretty.entrypoint:main"
 
-[project.optional-dependencies]
-dev = [
-  "pytest>=9.0.2"
-]
 [tool.hatch.build.targets.wheel]
 packages = ["src/qrcode_pretty"]
 
@@ -53,4 +49,9 @@ include = [
     "/src",
     "/README.md",
     "/LICENSE",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
 ]

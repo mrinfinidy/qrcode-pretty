@@ -27,5 +27,4 @@ jobs:
           uv pip install -e .
       - name: Test with pytest
         run: |
-          uv add pytest
           uv run pytest
