@@ -17,8 +17,8 @@ Check out the usage for all available options.
   - [NixOS](#nixos)
   - [Debian/Ubuntu](#debianubuntu)
   - [Arch Linux](<#arch-linux-(aur)>)
-  - [Using uv](#using-uv)
-  - [Using pipx](#using-pipx)
+  - [uv](#uv)
+  - [pipx](#pipx)
 - [Usage](#usage)
   - [Command-Line Options](#command-line-options)
   - [Sample Gallery](#sample-gallery)
@@ -113,7 +113,7 @@ cd qrcode-pretty
 makepkg -si
 ```
 
-### Using uv
+### uv
 
 [uv](https://github.com/astral-sh/uv) is a fast Python package installer and resolver, which I prefer over pip/pipx:
 
@@ -121,7 +121,7 @@ makepkg -si
 uv tool install qrcode-pretty
 ```
 
-### Using pipx
+### pipx
 
 For installing as a standalone command-line tool:
 
