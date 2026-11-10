@@ -58,7 +58,8 @@ def main(argv=None):
                 "version=",
                 "box-size=",
                 "border=",
-                "error-correction="
+                "error-correction=",
+                "help",
             ]
         )
     except getopt.GetoptError:
@@ -66,7 +67,7 @@ def main(argv=None):
         sys.exit(2)
 
     for opt, arg in opts:
-        if opt == '-h':
+        if opt in ('-h', '--help'):
             print_usage()
             sys.exit()
 
