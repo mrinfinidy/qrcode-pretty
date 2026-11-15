@@ -2,7 +2,7 @@
 
 pkgs.python3Packages.buildPythonApplication {
   pname = "qrcode-pretty";
-  version = "1.1.0";
+  version = (builtins.fromTOML (builtins.readFile ../pyproject.toml)).project.version;
   src = ./..;
   doCheck = false;
   pyproject = true;
