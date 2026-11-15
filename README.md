@@ -76,25 +76,19 @@ nix run github:mrinfinidy/qrcode-pretty --override-input nixpkgs nixpkgs
 
 ### Debian/Ubuntu
 
-Download and install the `.deb` package from the [releases page](https://github.com/mrinfinidy/qrcode-pretty/releases):
+For releases produced by the coordinated pipeline, download the `.deb` matching
+**Debian 13** (`+deb13`) or **Ubuntu 24.04 LTS** (`+ubuntu24.04`) from the
+[releases page](https://github.com/mrinfinidy/qrcode-pretty/releases). Verify its
+checksum against `SHA256SUMS`, then install the downloaded file:
 
 ```bash
-# Download the latest .deb package
-wget https://github.com/mrinfinidy/qrcode-pretty/releases/download/<version>/qrcode-pretty_<version>-1_all.deb
-
-# Install the package
-sudo dpkg -i qrcode-pretty_<version>-1_all.deb
-
-# Install dependencies if needed
-sudo apt-get install -f
+# Keep only the package matching your distribution in this directory.
+sudo apt install ./qrcode-pretty_*.deb
 ```
 
-Or build from source (see [PACKAGING.md](PACKAGING.md) for details):
-
-```bash
-dpkg-buildpackage -us -uc -b
-sudo dpkg -i ../qrcode-pretty_<version>-1_all.deb
-```
+There is no APT repository or PPA. For local builds and package testing, see
+[PACKAGING.md](PACKAGING.md); maintainers should use the
+[coordinated release process](docs/RELEASING.md).
 
 ### Arch Linux (AUR)
 

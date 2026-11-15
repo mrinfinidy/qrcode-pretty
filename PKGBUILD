@@ -11,13 +11,6 @@ makedepends=('git' 'python-build' 'python-installer' 'python-hatchling')
 source=("git+https://github.com/mrinfinidy/qrcode-pretty.git#tag=${pkgver}")
 sha256sums=('SKIP')
 
-pkgver() {
-  cd "$srcdir/$pkgname"
-  # Use version from pyproject.toml or fallback to git describe
-  git describe --tags 2>/dev/null | sed 's/^v//;s/-/./g' ||
-    python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])"
-}
-
 build() {
   cd "$srcdir/$pkgname"
   python -m build --wheel --no-isolation

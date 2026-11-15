@@ -4,7 +4,8 @@ Priority: optional
 Maintainer: afkdev8 <mail@afkdev8.com>
 Build-Depends: debhelper-compat (= 13),
                dh-python,
-               python3-all,
+               python3-all (>= 3.10),
+               python3-pytest,
                python3-setuptools,
                python3-hatchling,
                pybuild-plugin-pyproject,
@@ -18,7 +19,8 @@ Rules-Requires-Root: no
 
 Package: qrcode-pretty
 Architecture: all
-Depends: ${python3:Depends},
+Depends: python3 (>= 3.10),
+         ${python3:Depends},
          ${misc:Depends},
          python3-qrcode,
          python3-pil

@@ -1,0 +1,148 @@
+name: Build and test release artifacts
+
+on:
+  workflow_call:
+    inputs:
+      sha:
+        type: string
+        required: true
+      local_source:
+        description: Test the checkout before a release tag exists
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: '0.13.5'
+      - name: Validate and test
+        run: |
+          python scripts/release/release.py validate
+          uv sync --locked
+          uv run --locked pytest
+      - name: Build once and test clean installations
+        run: |
+          uv build --out-dir artifacts
+          for package in artifacts/*.whl artifacts/*.tar.gz; do
+            envdir=$(mktemp -d)
+            uv venv "$envdir"
+            uv pip install --python "$envdir/bin/python" "$package"
+            PATH="$envdir/bin:$PATH" "$envdir/bin/python" scripts/release/smoke.py
+            rm -rf "$envdir"
+          done
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: build-python
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 90
+
+  debian:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: deb13
+            image: debian:13
+          - target: ubuntu24.04
+            image: ubuntu:24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.sha }}
+          persist-credentials: false
+      - name: Build and test in independent containers
+        env:
+          IMAGE: ${{ matrix.image }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/source" "$RUNNER_TEMP/packages"
+          git archive HEAD | tar -x -C "$RUNNER_TEMP/source"
+          epoch=$(git show -s --format=%ct HEAD)
+          docker pull "$IMAGE"
+          # Resolve the tag once; build and runtime tests use the same image ID.
+          image_id=$(docker image inspect --format '{{.Id}}' "$IMAGE")
+          docker run --rm -e SOURCE_DATE_EPOCH="$epoch" \
+            -v "$RUNNER_TEMP/source:/source:ro" -v "$RUNNER_TEMP/packages:/out" \
+            "$image_id" bash /source/scripts/release/build-deb.sh "$TARGET"
+          docker run --rm -v "$RUNNER_TEMP/packages:/packages:ro" \
+            -v "$RUNNER_TEMP/source/scripts/release:/checks:ro" \
+            "$image_id" bash /checks/test-deb.sh
+          docker image inspect --format '{{json .RepoDigests}}' "$IMAGE" >> "$RUNNER_TEMP/packages/$TARGET-build.txt"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: build-${{ matrix.target }}
+          path: ${{ runner.temp }}/packages/*
+          if-no-files-found: error
+          retention-days: 90
+
+  arch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.sha }}
+          persist-credentials: false
+      - name: Build Arch package and generate AUR metadata
+        env:
+          LOCAL_SOURCE: ${{ inputs.local_source }}
+          RELEASE_SHA: ${{ inputs.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/source" "$RUNNER_TEMP/arch"
+          git archive HEAD | tar -x -C "$RUNNER_TEMP/source"
+          docker pull archlinux:base-devel
+          image_id=$(docker image inspect --format '{{.Id}}' archlinux:base-devel)
+          docker run --rm -e LOCAL_SOURCE -e RELEASE_SHA \
+            -v "$RUNNER_TEMP/source:/source:ro" -v "$RUNNER_TEMP/arch:/out" \
+            "$image_id" bash /source/scripts/release/build-arch.sh
+          docker image inspect --format '{{json .RepoDigests}}' archlinux:base-devel >> "$RUNNER_TEMP/arch/arch-build.txt"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: build-arch
+          path: ${{ runner.temp }}/arch/*
+          if-no-files-found: error
+          retention-days: 90
+
+  bundle:
+    needs: [python, debian, arch]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          pattern: build-*
+          merge-multiple: true
+          path: bundle
+      - name: Seal bundle identity
+        env:
+          SOURCE_SHA: ${{ inputs.sha }}
+        run: |
+          version=$(python scripts/release/release.py validate)
+          python scripts/release/release.py manifest bundle --version "$version" --sha "$SOURCE_SHA" --run-id "$GITHUB_RUN_ID"
+          python scripts/release/release.py verify bundle --version "$version" --sha "$SOURCE_SHA" --run-id "$GITHUB_RUN_ID"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: release-bundle
+          path: bundle/*
+          if-no-files-found: error
+          retention-days: 90

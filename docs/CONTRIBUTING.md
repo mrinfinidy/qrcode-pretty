@@ -6,12 +6,13 @@
 - [Setting Up Development Environment](#setting-up-development-environment)
 - [Building the Package](#building-the-package)
 - [Testing](#testing)
+- [Releases](#releases)
 
 ## Development
 
 ### Requirements
 
-- Python 3.8 or higher
+- Python 3.10 or higher (Python 3.11+ for release automation scripts)
 - Dependencies (automatically installed):
   - qrcode[pil] >= 7.0
   - pillow >= 9.0
@@ -90,6 +91,12 @@ uv build
 # - dist/qrcode_pretty-1.0.0-py3-none-any.whl
 # - dist/qrcode_pretty-1.0.0.tar.gz
 ```
+
+### Releases
+
+Maintainers use the [coordinated release process](RELEASING.md): automated
+preparation PR, build/install checks, then one protected approval for PyPI,
+GitHub assets and the AUR push. Do not manually tag an unprepared revision.
 
 ### Testing
 
