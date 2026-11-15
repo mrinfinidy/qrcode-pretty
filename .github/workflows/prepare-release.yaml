@@ -1,0 +1,60 @@
+name: Prepare release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: New stable upstream version, e.g. 1.2.0 (no v prefix)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prepare-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: '0.13.5'
+      - name: Prepare metadata and open review PR
+        env:
+          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python scripts/release/release.py prepare "$VERSION" \
+            --name "qrcode-pretty release" --email "qrcode-pretty-release@users.noreply.github.com"
+          uv sync --locked
+          uv run --locked pytest
+          git diff --check
+          branch="release/$VERSION"
+          # Existing release branches require review, never a force-push.
+          if git ls-remote --exit-code origin "refs/heads/$branch" >/dev/null; then
+            echo "Release branch already exists. Review its PR instead of overwriting it." >&2
+            exit 1
+          fi
+          git switch -c "$branch"
+          git config user.name "qrcode-pretty release"
+          git config user.email "qrcode-pretty-release@users.noreply.github.com"
+          git add pyproject.toml uv.lock PKGBUILD debian/changelog
+          git commit -m "Prepare release $VERSION"
+          gh auth setup-git
+          git push --set-upstream origin "$branch"
+          gh pr create --base main --head "$branch" --title "Release $VERSION" \
+            --body "Coordinated release preparation. Review the metadata and approve automated PR checks if GitHub requires it. Merge only after CI passes. The merged commit will be tagged and built, then publication waits for the protected release environment approval."

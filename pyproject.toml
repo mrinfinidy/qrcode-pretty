@@ -19,8 +19,6 @@ classifiers = [
     "Intended Audience :: End Users/Desktop",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -44,9 +42,16 @@ qrcode-pretty = "qrcode_pretty.entrypoint:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/qrcode_pretty"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"assets/default.png" = "qrcode_pretty/assets/default.png"
+
 [tool.hatch.build.targets.sdist]
 include = [
     "/src",
+    "/assets",
+    "/tests",
+    "/debian",
+    "/scripts/release",
     "/README.md",
     "/LICENSE",
 ]

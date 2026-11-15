@@ -2,29 +2,46 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
   contents: read
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
+  workflow-lint:
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
-      - name: Set up Python
-        uses: actions/setup-python@v3
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          python-version: "3.12"
-      - name: Install UV
-        run: |
-          pip install uv
-          uv --version
-      - name: Install dependencies
-        run: |
-          uv venv 
-          uv pip install -e .
-      - name: Test with pytest
-        run: |
-          uv run pytest
+          persist-credentials: false
+      - run: |
+          docker run --rm -v "$PWD:/repo:ro" -w /repo docker.io/rhysd/actionlint:1.7.12
+          shellcheck scripts/release/*.sh
+          git diff --check
+
+  tests:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.10', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: '0.13.5'
+      - run: |
+          uv sync --locked
+          uv run --locked pytest
+
+  packages:
+    uses: ./.github/workflows/build-release.yaml
+    with:
+      sha: ${{ github.sha }}
+      local_source: true

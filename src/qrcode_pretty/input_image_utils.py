@@ -9,7 +9,8 @@ def find_default_image():
     2. System-wide install: /usr/share/qrcode-pretty/assets/default.png
     3. Python prefix install: {sys.prefix}/share/qrcode-pretty/assets/default.png
     4. Local development: ./assets/default.png
-    5. Package relative: ../../assets/default.png (from module directory)
+    5. Bundled package data: assets/default.png (from module directory)
+    6. Source checkout: ../../assets/default.png (from module directory)
     
     Returns:
         str: Path to the default image, or fallback to ./assets/default.png
@@ -19,6 +20,7 @@ def find_default_image():
         "/usr/share/qrcode-pretty/assets/default.png",
         os.path.join(sys.prefix, "share/qrcode-pretty/assets/default.png"),
         "./assets/default.png",
+        os.path.join(os.path.dirname(__file__), "assets", "default.png"),
         os.path.join(os.path.dirname(__file__), "..", "..", "assets", "default.png"),
     ]
     
