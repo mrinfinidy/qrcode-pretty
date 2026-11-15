@@ -10,20 +10,31 @@ import tempfile
 from release import checksum, run, stable
 
 
+def find_release(repo, version):
+    # The by-tag endpoint excludes drafts. List all pages so retries can find
+    # an existing draft instead of attempting to create it again.
+    result = subprocess.run(
+        ["gh", "api", "--paginate", "--slurp", f"repos/{repo}/releases?per_page=100"],
+        text=True, capture_output=True)
+    if result.returncode:
+        raise RuntimeError(result.stderr)
+    matches = [release for page in json.loads(result.stdout) for release in page
+               if release["tag_name"] == version]
+    if len(matches) > 1:
+        raise ValueError("Multiple GitHub releases match the tag")
+    return matches[0] if matches else None
+
+
 def stage(directory, version, sha):
     repo = os.environ["GITHUB_REPOSITORY"]
-    # Use status, not a blanket exception: authentication/server failures are fatal.
-    result = subprocess.run(["gh", "api", f"repos/{repo}/releases/tags/{version}"],
-                            text=True, capture_output=True)
-    if result.returncode:
-        if "HTTP 404" not in result.stderr:
-            raise RuntimeError(result.stderr)
+    release = find_release(repo, version)
+    if release is None:
         run("gh", "release", "create", version, "--verify-tag", "--draft",
             "--title", version, "--notes",
             f"Release {version}\n\nSource commit: {sha}\n\nDebian 13 and Ubuntu 24.04 packages are provided as downloads, not an APT repository.")
-        release = json.loads(run("gh", "api", f"repos/{repo}/releases/tags/{version}"))
-    else:
-        release = json.loads(result.stdout)
+        release = find_release(repo, version)
+        if release is None:
+            raise RuntimeError("Created GitHub draft release could not be found")
     if release["tag_name"] != version:
         raise ValueError("Release tag mismatch")
     # Don't overwrite assets, including on recovery after public release.

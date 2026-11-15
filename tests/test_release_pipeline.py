@@ -232,13 +232,49 @@ def test_github_errors_are_not_treated_as_missing_release(bundle, monkeypatch):
         github_release.stage(bundle, VERSION, SHA)
 
 
+@pytest.mark.parametrize("existing", [False, True])
+@pytest.mark.parametrize("draft", [False, True])
+def test_github_stage_finds_drafts_and_published_releases(bundle, monkeypatch, existing, draft):
+    monkeypatch.setenv("GITHUB_REPOSITORY", "owner/qrcode-pretty")
+    release_record = {"tag_name": VERSION, "id": 42, "draft": draft}
+    calls = []
+    lookups = []
+
+    def fake_subprocess(args, **kwargs):
+        assert args == ["gh", "api", "--paginate", "--slurp",
+                        "repos/owner/qrcode-pretty/releases?per_page=100"]
+        found = existing or bool(lookups)
+        lookups.append(args)
+        # A matching release on a later page must also be found.
+        pages = [[{"tag_name": "0.1.0", "id": 1}], [release_record] if found else []]
+        return subprocess.CompletedProcess(args, 0, json.dumps(pages), "")
+
+    def fake_run(*args):
+        calls.append(args)
+        if args[:2] == ("gh", "api"):
+            assert args[-1] == "repos/owner/qrcode-pretty/releases/42/assets?per_page=100"
+            return "[[]]"
+        return ""
+
+    monkeypatch.setattr(github_release.subprocess, "run", fake_subprocess)
+    monkeypatch.setattr(github_release, "run", fake_run)
+    github_release.stage(bundle, VERSION, SHA)
+    creates = [args for args in calls if args[:3] == ("gh", "release", "create")]
+    assert len(creates) == (0 if existing else 1)
+    if creates:
+        assert "--draft" in creates[0]
+        assert "--verify-tag" in creates[0]
+    uploads = [args for args in calls if args[:3] == ("gh", "release", "upload")]
+    assert {Path(args[-1]).name for args in uploads} == {p.name for p in bundle.iterdir()}
+
+
 def test_github_conflicting_asset_is_never_overwritten(bundle, monkeypatch):
     monkeypatch.setenv("GITHUB_REPOSITORY", "owner/qrcode-pretty")
     def fake_run(*args, **kwargs):
         if "stdout" in kwargs:
             kwargs["stdout"].write(b"different published bytes")
             return subprocess.CompletedProcess(args, 0)
-        return subprocess.CompletedProcess(args, 0, json.dumps({"tag_name": VERSION, "id": 42}), "")
+        return subprocess.CompletedProcess(args, 0, json.dumps([[{"tag_name": VERSION, "id": 42}]]), "")
     monkeypatch.setattr(github_release.subprocess, "run", fake_run)
     monkeypatch.setattr(github_release, "run", lambda *a: json.dumps([[{"name": "PKGBUILD", "id": 7}]]))
     with pytest.raises(ValueError, match="different bytes"):
