@@ -17,7 +17,9 @@ pkgs.python3Packages.buildPythonApplication {
   ];
 
   makeWrapperArgs = [
-    "--set DEFAULT_IMAGE ${./../assets/default.png}"
+    "--set"
+    "DEFAULT_IMAGE"
+    "${./../assets/default.png}"
   ];
 
   meta = with lib; {
