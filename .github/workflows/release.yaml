@@ -135,6 +135,14 @@ jobs:
         run: |
           python scripts/release/release.py verify bundle --version "$VERSION" --sha "$SOURCE_SHA" --run-id "$ARTIFACT_RUN"
           test "$(git rev-parse "refs/tags/$VERSION^{commit}")" = "$SOURCE_SHA"
+      # TEMPORARY: remove after recovering 1.1.2. Keep the source checkout and
+      # original bundle intact; only replace the broken GitHub publisher.
+      - name: Apply one-time GitHub publisher fix for 1.1.2 recovery
+        if: >-
+          ${{ github.event_name == 'workflow_dispatch' &&
+              github.ref == 'refs/heads/main' &&
+              inputs.version == '1.1.2' && inputs.artifact_run == '43751786501' }}
+        run: git show "$GITHUB_SHA:scripts/release/github_release.py" > scripts/release/github_release.py
       - name: Stage or verify immutable GitHub assets
         id: github_assets
         env:
