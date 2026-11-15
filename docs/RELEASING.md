@@ -40,8 +40,10 @@ does not certify other distributions.
    TestPyPI trusted publisher for `test-release.yaml`.
 
 Actions are pinned to commit SHAs; uv is pinned. Container tags are resolved to
-image IDs once per job, and resolved registry digests and installed package
-versions are recorded. Apt/pacman packages can change between builds; this is
+image IDs once per job. Resolved registry digests are saved in runner-owned
+`*-image.json` files; installed package versions are recorded separately in
+container-created `*-build.txt` files. Keeping them separate avoids host writes
+to Docker's root-owned output files. Apt/pacman packages can change between builds; this is
 **not** a claim of bit-for-bit reproducibility. Pin/update base-image digests and
 package snapshots separately if archival reproducibility becomes a requirement.
 
@@ -161,8 +163,12 @@ bash scripts/release/check-containers.sh arch
 ```
 
 The helper defaults to Docker; set `CONTAINER_ENGINE=podman` for an already
-configured rootless Podman environment. It copies tracked/unignored files into
-containers and deletes temporary build outputs after testing. The workflow uses
+configured rootless Podman environment. On Linux, also set `PODMAN_KEEP_ID=true`
+to run the container as root while mapping your host UID to a non-root container
+UID. This exposes ownership problems that rootless Podman's default mapping can
+hide, including preserved source ownership and unwritable container output files.
+The helper copies tracked/unignored files into containers and deletes temporary
+build outputs after testing. The workflow uses
 its own exact-commit archive rather than a developer working tree.
 
 Do not run build-deb.sh, test-deb.sh or build-arch.sh directly on your host: those

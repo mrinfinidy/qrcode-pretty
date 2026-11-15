@@ -140,7 +140,8 @@ def manifest(directory, version, sha, run_id):
     names = {p.name for p in paths}
     required = {f"qrcode_pretty-{version}-py3-none-any.whl", f"qrcode_pretty-{version}.tar.gz",
                 f"qrcode-pretty_{version}-1+deb13_all.deb", f"qrcode-pretty_{version}-1+ubuntu24.04_all.deb",
-                "PKGBUILD", "aur.SRCINFO", "deb13-build.txt", "ubuntu24.04-build.txt", "arch-build.txt"}
+                "PKGBUILD", "aur.SRCINFO", "deb13-build.txt", "ubuntu24.04-build.txt", "arch-build.txt",
+                "deb13-image.json", "ubuntu24.04-image.json", "arch-image.json"}
     if not required <= names or any(p.is_symlink() for p in paths):
         raise ValueError(f"Missing/unsafe release artifacts: {required - names}")
     data = {"version": version, "sha": sha, "run_id": str(run_id),

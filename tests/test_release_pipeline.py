@@ -68,7 +68,8 @@ def test_validation_rejects_scattered_metadata(metadata, file):
 def bundle(tmp_path):
     names = [f"qrcode_pretty-{VERSION}-py3-none-any.whl", f"qrcode_pretty-{VERSION}.tar.gz",
              f"qrcode-pretty_{VERSION}-1+deb13_all.deb", f"qrcode-pretty_{VERSION}-1+ubuntu24.04_all.deb",
-             "PKGBUILD", "aur.SRCINFO", "deb13-build.txt", "ubuntu24.04-build.txt", "arch-build.txt"]
+             "PKGBUILD", "aur.SRCINFO", "deb13-build.txt", "ubuntu24.04-build.txt", "arch-build.txt",
+             "deb13-image.json", "ubuntu24.04-image.json", "arch-image.json"]
     for name in names:
         (tmp_path / name).write_text(f"Original artifact: {name}")
     return tmp_path
@@ -109,8 +110,10 @@ def test_bundle_rejects_wrong_release_identity(bundle, version, sha, run):
         release.verify(bundle, version, sha, run)
 
 
-def test_manifest_requires_every_distribution(bundle):
-    (bundle / f"qrcode-pretty_{VERSION}-1+deb13_all.deb").unlink()
+@pytest.mark.parametrize("missing", [f"qrcode-pretty_{VERSION}-1+deb13_all.deb",
+                                     "deb13-image.json", "ubuntu24.04-image.json", "arch-image.json"])
+def test_manifest_requires_every_distribution_and_provenance(bundle, missing):
+    (bundle / missing).unlink()
     with pytest.raises(ValueError):
         seal(bundle)
 
@@ -176,6 +179,50 @@ def test_recovery_requires_original_completed_release_run(event_env, monkeypatch
     else:
         release.resolve()
         assert values["artifact_run"] == RUN
+
+
+@pytest.mark.parametrize("target", ["deb13", "ubuntu24.04", "arch"])
+def test_container_helper_does_not_append_to_container_owned_records(tmp_path, target):
+    """An unwritable build record reproduces the host-side Docker failure."""
+    root = tmp_path / "repo"
+    scripts = root / "scripts/release"
+    scripts.mkdir(parents=True)
+    helper = scripts / "check-containers.sh"
+    helper.write_text((SCRIPTS / helper.name).read_text())
+    (root / "README.md").write_text("test source")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    git = bin_dir / "git"
+    git.write_text('#!/usr/bin/env bash\ncase "$1" in\n'
+                   'ls-files) printf "README.md\\0" ;;\n'
+                   'show) echo 1 ;;\n*) exit 99 ;;\nesac\n')
+    git.chmod(0o755)
+    engine = bin_dir / "engine"
+    engine.write_text('''#!/usr/bin/env python3
+import os
+from pathlib import Path
+import sys
+args = sys.argv[1:]
+if args[0] == "pull":
+    pass
+elif args[:2] == ["image", "inspect"]:
+    print('["image@sha256:test"]' if "RepoDigests" in args[3] else "sha256:test")
+elif args[0] == "run":
+    for value in args:
+        if value.endswith(":/out"):
+            directory = Path(value[:-5])
+            record = directory / (os.environ["FAKE_TARGET"] + "-build.txt")
+            record.write_text("container-owned build record")
+            record.chmod(0o444)
+else:
+    sys.exit(99)
+''')
+    engine.chmod(0o755)
+    result = subprocess.run(["bash", str(helper), target], capture_output=True, text=True,
+                            env={**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}",
+                                 "CONTAINER_ENGINE": str(engine), "PODMAN_KEEP_ID": "false", "FAKE_TARGET": target})
+    assert result.returncode == 0, result.stderr
+    assert f"checks passed: {target}" in result.stdout
 
 
 def test_github_errors_are_not_treated_as_missing_release(bundle, monkeypatch):

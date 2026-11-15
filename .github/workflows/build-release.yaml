@@ -82,7 +82,9 @@ jobs:
           docker run --rm -v "$RUNNER_TEMP/packages:/packages:ro" \
             -v "$RUNNER_TEMP/source/scripts/release:/checks:ro" \
             "$image_id" bash /checks/test-deb.sh
-          docker image inspect --format '{{json .RepoDigests}}' "$IMAGE" >> "$RUNNER_TEMP/packages/$TARGET-build.txt"
+          # Container-created records are root-owned under Docker. Create a new
+          # runner-owned provenance file instead of appending to those records.
+          docker image inspect --format '{{json .RepoDigests}}' "$IMAGE" > "$RUNNER_TEMP/packages/$TARGET-image.json"
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: build-${{ matrix.target }}
@@ -109,7 +111,7 @@ jobs:
           docker run --rm -e LOCAL_SOURCE -e RELEASE_SHA \
             -v "$RUNNER_TEMP/source:/source:ro" -v "$RUNNER_TEMP/arch:/out" \
             "$image_id" bash /source/scripts/release/build-arch.sh
-          docker image inspect --format '{{json .RepoDigests}}' archlinux:base-devel >> "$RUNNER_TEMP/arch/arch-build.txt"
+          docker image inspect --format '{{json .RepoDigests}}' archlinux:base-devel > "$RUNNER_TEMP/arch/arch-image.json"
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: build-arch
