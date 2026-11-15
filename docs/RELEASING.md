@@ -16,9 +16,10 @@ does not certify other distributions.
 
 1. Enable GitHub Actions and permit workflows to create pull requests. The
    preparation job requests contents-write and pull-requests-write permissions.
-2. Protect `main`: require review and successful CI (including the package
-   matrix) before merging. Merge release PRs using **merge or squash**, not a
-   rebase-only strategy: release detection matches the PR's merge commit.
+2. Protect `main` with the [branch ruleset settings](#branch-ruleset-settings)
+   below. Review each PR's diff and require successful CI, including the package
+   matrix. Merge release PRs using **merge or squash**, not a rebase-only strategy:
+   release detection matches the PR's merge commit.
 3. Create/protect the GitHub environment named `release`. Require a reviewer;
    optionally prevent self-review. Confirm environment-reviewer support for
    your repository visibility and GitHub plan. Restrict deployment branches to
@@ -46,6 +47,49 @@ container-created `*-build.txt` files. Keeping them separate avoids host writes
 to Docker's root-owned output files. Apt/pacman packages can change between builds; this is
 **not** a claim of bit-for-bit reproducibility. Pin/update base-image digests and
 package snapshots separately if archival reproducibility becomes a requirement.
+
+### Branch ruleset settings
+
+Create an **Active** branch ruleset targeting only `main`, with an empty bypass
+list. Do not target release-preparation branches: automation must be able to
+create and push those branches.
+
+Enable:
+
+- **Restrict deletions** and **Block force pushes**.
+- **Require a pull request before merging**, with conversation resolution.
+- **Require status checks to pass**, with the branch up to date before merging.
+  Select GitHub Actions as the expected check source where available.
+
+For a solo maintainer, set required PR approvals to **0**, and leave Code Owner
+review and approval of the most recent push off. You cannot approve your own PR;
+reviewing the diff yourself is still necessary. The protected `release`
+environment provides a separate, explicit publication approval. Independent
+human review requires another trusted maintainer.
+
+Leave restrict creations, restrict updates, required deployments, linear history,
+and signed-commit requirements off for this setup. In particular, requiring the
+production deployment before merging would block a process that publishes only
+**after** the merge.
+
+Require all of these CI checks, selecting their actual displayed names:
+
+- `workflow-lint`
+- `tests (3.10)`, `tests (3.12)`, `tests (3.13)`
+- `packages / python`
+- `packages / debian (deb13, debian:13)`
+- `packages / debian (ubuntu24.04, ubuntu:24.04)`
+- `packages / arch`
+- `packages / bundle`
+
+Do not require only the downstream bundle check: GitHub accepts skipped checks,
+and the bundle job is skipped if a build dependency fails. Do not select the
+post-merge Release/publication jobs as pre-merge requirements.
+
+If new checks are not available in the selector yet, create the ruleset with
+required checks temporarily off, push/open the implementation PR, and let CI
+run. Then enable/select these checks **before merging**. Keep this list aligned
+with job names in `.github/workflows/ci.yaml` and `build-release.yaml`.
 
 ## Normal release
 
@@ -85,8 +129,9 @@ scripts execute in the publisher.
 Registries cannot participate in one transaction. PyPI or AUR may be published
 even if a later step fails and the GitHub release remains a draft.
 
-- **Before a bundle exists:** rerun the original failed build/run at the same
-  source SHA. A transient workflow/build failure does not require a version bump.
+- **Before a bundle exists:** rerun the failed jobs of the original run at the
+  same source SHA, leaving successful build artifacts intact. A transient
+  workflow/build failure does not require a version bump.
   If source changes are needed, stop and review the release state; automation
   never moves the reserved tag or republishes changed bytes.
 - **Once any channel may have published:** preserve and reuse the original
