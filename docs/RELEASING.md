@@ -139,19 +139,6 @@ even if a later step fails and the GitHub release remains a draft.
   version and the original completed Release workflow run ID. Recovery verifies
   the producing repository, workflow, event, SHA, manifest identity and checksums.
   It skips rebuilding/tagging and still requires the protected approval.
-### One-time recovery of 1.1.2
-
-After merging the draft-release lookup fix into `main`, run **Release** from
-`main` with `version: 1.1.2` and `artifact_run: 43751786501`. Approve the protected
-`release` environment when prompted. Do not rerun Prepare release, move the tag,
-or rebuild the artifacts.
-
-A temporary step, restricted to exactly those recovery inputs, loads only the
-corrected `github_release.py` from the dispatch commit. Everything else still
-uses the original tagged source and verified bundle. It finds and resumes the
-existing draft, then continues PyPI and AUR publication. After successful
-publication, remove the workflow step **Apply one-time GitHub publisher fix for
-1.1.2 recovery**, its TEMPORARY comment, and this subsection.
 
 ### Recovery safeguards
 
