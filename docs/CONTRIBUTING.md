@@ -33,6 +33,9 @@ nix-shell
 nix develop
 ```
 
+The Nix shells provide development dependencies but do not install uv. Install
+uv separately if you want to use the locked workflow below.
+
 #### Using uv
 
 ```bash
@@ -40,14 +43,11 @@ nix develop
 git clone https://github.com/mrinfinidy/qrcode-pretty.git
 cd qrcode-pretty
 
-# Create virtual environment and install in editable mode
-uv venv
-# or: .venv\Scripts\activate  # On Windows
+# Create/sync the environment, including development dependencies, from uv.lock
+uv sync --locked
 
-uv pip install -e .
-
-# Run the tool
-uv run qrcode-pretty -d "test"
+# Run the tool without changing the lockfile
+uv run --locked qrcode-pretty -d "test"
 ```
 
 #### Using pip/venv
@@ -62,8 +62,8 @@ python -m venv .venv
 source .venv/bin/activate  # On Linux/Mac
 # or: .venv\Scripts\activate  # On Windows
 
-# Install in editable mode
-pip install -e .
+# Install the project and test runner
+python -m pip install -e . pytest
 
 # Run the tool
 qrcode-pretty -d "test"
@@ -87,24 +87,27 @@ nix build .#qrcode-pretty
 # Build wheel and source distribution
 uv build
 
-# Output will be in dist/ e.g.:
-# - dist/qrcode_pretty-1.0.0-py3-none-any.whl
-# - dist/qrcode_pretty-1.0.0.tar.gz
+# The wheel (.whl) and source distribution (.tar.gz) are written to dist/.
 ```
+
+### Testing
+
+The preferred workflow matches CI and uses the committed lockfile:
+
+```bash
+uv sync --locked
+uv run --locked pytest
+```
+
+If you used the pip/venv setup instead, activate that environment and run
+`python -m pytest`. This alternative does not use `uv.lock`.
+
+For local Debian/Ubuntu/Arch build and installation checks, see
+[Packaging development and troubleshooting](../PACKAGING.md).
 
 ### Releases
 
 Maintainers use the [coordinated release process](RELEASING.md): automated
 preparation PR, build/install checks, then one protected approval for PyPI,
-GitHub assets and the AUR push. Do not manually tag an unprepared revision.
-
-### Testing
-
-#### uv
-
-This section assumes that you have successfully set up a development environment with uv.
-
-```bash
-# Run tests
-uv run pytest
-```
+GitHub assets and the AUR push. No manual packaging commands are needed for a
+normal release. Do not manually tag an unprepared revision.

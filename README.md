@@ -16,7 +16,7 @@ Check out the usage for all available options.
 - [Installation](#installation)
   - [NixOS](#nixos)
   - [Debian/Ubuntu](#debianubuntu)
-  - [Arch Linux](<#arch-linux-(aur)>)
+  - [Arch Linux (AUR)](#arch-linux-aur)
   - [uv](#uv)
   - [pipx](#pipx)
 - [Usage](#usage)
@@ -78,13 +78,21 @@ nix run github:mrinfinidy/qrcode-pretty --override-input nixpkgs nixpkgs
 
 For releases produced by the coordinated pipeline, download the `.deb` matching
 **Debian 13** (`+deb13`) or **Ubuntu 24.04 LTS** (`+ubuntu24.04`) from the
-[releases page](https://github.com/mrinfinidy/qrcode-pretty/releases). Verify its
-checksum against `SHA256SUMS`, then install the downloaded file:
+[releases page](https://github.com/mrinfinidy/qrcode-pretty/releases).
+Legacy releases through **1.1.1** have no `.deb` assets; choose a release that
+includes the package for your distribution.
+
+Download `SHA256SUMS` from the same release and verify the package before installing:
 
 ```bash
 # Keep only the package matching your distribution in this directory.
+sha256sum --ignore-missing --check SHA256SUMS
 sudo apt install ./qrcode-pretty_*.deb
+qrcode-pretty --help
+qrcode-pretty --data 'https://example.com' --image default --output /tmp/qr-test
 ```
+
+To uninstall, run `sudo apt purge qrcode-pretty`.
 
 There is no APT repository or PPA. For local builds and package testing, see
 [PACKAGING.md](PACKAGING.md); maintainers should use the
@@ -166,8 +174,12 @@ Available styles: square, gapped-square, circle, round, vertical-bars, horizonta
 **About the `--image` option:**
 
 - Use `--image /path/to/your/logo.png` to embed your own image in the QR code center
-- Use `--image default` to use the bundled demonstration image (included with all installation methods)
+- Use `--image default` to use the bundled demonstration image
 - Omit `--image` to generate a QR code without a center image
+
+The **1.1.1** Python distributions do not bundle the default image. With that
+version, supply your own image path; bundled-image support is included in Python
+releases produced by the new pipeline.
 
 ### Sample Gallery
 
@@ -213,22 +225,7 @@ This package follows modern Python packaging standards:
 - **Module Name**: `qrcode_pretty`
 - **Build System**: [Hatchling](https://hatch.pypa.io/)
 - **Configuration**: `pyproject.toml` (PEP 621 compliant)
-- **Minimum Python**: 3.8+
-
-### Project Structure
-
-```
-qrcode-pretty/
-├── src/
-│   └── qrcode_pretty/
-│       ├── __init__.py
-│       ├── entrypoint.py
-│       ├── qr_code_generator.py
-│       └── const.py
-├── pyproject.toml
-├── README.md
-└── LICENSE
-```
+- **Minimum Python**: 3.10+
 
 ## Author
 
